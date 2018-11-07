@@ -1,0 +1,22 @@
+#!/usr/bin/env ruby
+
+require_relative "../lib/jetbrains"
+
+      opts = Trollop.options do
+        version VERSION
+        banner 'Emulate a JetBrains Licensing Server'
+        opt :ip, 'IP to listen on', type: :string, default: '0.0.0.0'
+        opt :port, 'Port to listen on', type: :int, default: 9123
+        opt :localtunnel, 'Start localtunnel instead of ngrok', default: false
+      end
+
+      logger = Logger.new(STDOUT)
+      logger.formatter = proc do |_severity, datetime, _progname, msg|
+        "[#{datetime}] #{msg}\n"
+      end
+
+      server = format("http://%s:%i\n", opts.ip, opts.port).to_s
+      notification = format("Licensing server now running on http://%s:%i\n", opts.ip, opts.port)
+      puts notification.green
+
+      Jetbrains::LicenseServer.run!(environment: :production, quiet: true, host: opts.ip, port: opts.port, logger: logger, ngrok: opts.ngrok)
